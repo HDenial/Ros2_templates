@@ -1,88 +1,92 @@
-A guide to ROS2 functionalities on CLI
+-------- A guide to ROS2 functionalities on CLI --------
 
-terminator commands:
+includes Ros2, rviz2 and gazebo general commands and launch templates
+
+made for my own personal use. might get a bit confusing, refer to actual files in repo.
+
+--------- Useful External Software ----------
+Recommend using Terminator or Tmux for better visibility and control
+
+Terminator commands:     #https://github.com/gnome-terminator/terminator 
 ctrl + Shift + ?
 x=zoom in
 o=Split horizontal
 e=Split vertical
 w=Close
 
-start ros2:
+Tmux: https://github.com/tmux/tmux/wiki
+---------- ROS2 Basic ----------
+Basic ROS2 functionalities
+
+- Start ros2:
 source /opt/ros/jazzy/setup.bash
 
-create pkg:
+- Create pkg:
 python: ros2 pkg create my_py_pkg --build-type ament_python --dependencies rclpy
 cpp: ros2 pkg create my_cpp_pkg --build-type ament_cmake --dependencies rclcpp
 
-
-build x and y named packages
-from root workspace(same folder as src is contained)
+- Building:
+#After every code change before running you must rebuild the environment; it must be sourced manually or in your bashrc to be built
+#build x and y named packages
+#from root workspace(same folder as src is contained)
 colcon build --packages-select x y
 colcon build (builds all packages that are sourced)
 
-
-Inspect nodes:
+- Inspect nodes:
 ros2 node list #names active nodes
 ros2 node info #info on the active nodes
 ros2 interface show <interface name>
 
-general inspection:
-rqt
-rqt_graph
-
-Inspect topics:
+- Inspect topics:
 ros2 topic list #--include-hidden-topics to show.... hidden topics
 ros2 topic info <topic name>
 ros2 topic hz <topic name> #frequency
 ros2 topic bw <topic name> #bandwidth
 ros2 topic pub -r <rate/second> <topic name> <interface> "{vectorname: {variablename: <value>}, ...}"[vector data] / "{data:'...'}"[string] 
 
-Inspect services:
+- Inspect services:
 ros2 service list
 ros2 service type <service node name>  [returns service interface] 
 ros2 service call <Service node name > <interface> "{<request>}" 
 #when renaming services and clients use the same structure as changing topic names to create or request from different service names
 
-Interfaces:
-#download new interface from common_interfaces repo on git:
-sudo apt install ros-jazzy-<interface>-<msgs/srv>
+- Interfaces: a topics message structure
+sudo apt install ros-jazzy-<interface>-<msgs/srv> #download new interface from common_interfaces repo on git or make your own
 apt search ros-jazzy-<> #find available packages
-#use info command on nodes or topics to find the interface they're using(for services use type)
-ros2 topic info <topicname>
-
+ros2 topic info <topicname> #find a node or topic's interface name (for services use type)
 ros2 interface packages #show all installed interface packages
 ros2 interface package <package_name> #show all interface names from given package
 ros2 interface show <interface_name> #show interface msg structure
 
+- GUI aided inspection:
+rqt
+rqt_graph
 
-parameters:
+
+- parameters:
 
 ros2 param list
-ros2 param get <node name> <parameter name>
-
-#runs file using params specified by the yaml file.
-ros2 run <package name> <file name> --ros-args --params-file ~/yaml_params/<yaml file name>.yaml 
-
-#manually send a param value
-~            same as above                      ~ -p <param name>:=<value> (additional params can be adjusted by repeating -p structure)
-#or during runtime:
+ros2 param get <node name> <parameter name> #returns current parameter value
+ros2 run <package name> <file name> --ros-args --params-file ~/yaml_params/<yaml file name>.yaml    #runs file using params set by a yaml file.
+~            same as above                   ~ -p <param name>:=<value> (additional params can be adjusted by repeating -p structure) #manually set a param value
+#or during runtime: 
 ros2 param set <node_name> <param_name> <value> #requires callback implementation
 
 
 
-Bags:
+- Bags: saves a sequence of data streams for later replication
 ros2 bag -h(help) -o(rename)
-         play resends recorded data to the topic 
+~      ~ play <bag_directory>  #resends recorded data to the topics 
  
-Args:
+- Args:
 
--run 2 of the same node without naming conflicts
+#run 2 of the same node without naming conflicts
 ros2 run <package name> <exec name> --ros-args -r __node:=<new name>
 ~                                            ~ -r <topic name>:=<new name>
 ~                                            ~ -r __ns:=<tag> 
 
 
-Launch: 
+- Launch: 
 ros2 launch <package_name> <launch_file_name.xml>
 
 #also when naming something on code you dont want to be tagged, just start its name with /
@@ -90,18 +94,18 @@ ros2 launch <package_name> <launch_file_name.xml>
 
 
 
-RVIZ AND GAZEBO:
+--------- RVIZ AND GAZEBO --------
+virtual model visualization and simulation software integrated to ROS2
 
-urdf:
+- urdf:
 create- touch <name>.urdf
+ros2 launch <pkg_name> <launch file> model:=//<robot_model_file_location>
 
-ros2 launch <pkg_name> <launch file> model:=<robot_model_file_location>
-example- ros2 launch urdf_tutorial display.launch.py model:=/opt/ros/jazzy/share/urdf_tutorial/urdf/08-macroed.urdf.xacro
-project- ros2 launch urdf_tutorial display.launch.py model:=//home/HugoF/Documents/Projects/ROS2/my_robot.urdf
-
+example : ros2 launch urdf_tutorial display.launch.py model:=/opt/ros/jazzy/share/urdf_tutorial/urdf/08-macroed.urdf.xacro #see xacro files in repo for explanation
 
 
-tree - ros2 run tf2_tools view_frames (generates a pdf on the active directory) -o (rename the file generated)
+- tree: 
+ros2 run tf2_tools view_frames (generates a pdf on the active directory) -o (rename the file generated)
 
 
 run rviz launch file:
@@ -112,20 +116,21 @@ ros2 launch my_robot_description display.launch.xml
 #then save config and apply config path to file.
 
 
-gazebo:
+-gazebo:
 
 #gazebo topics are separete from ros2 topics, these are for the simulated environment
 
 gz topic -l (list)
-~      ~ -i -t (info on topic)
+~      ~ -i -t <topic_name> (info on topic)
 ~      ~ -h (help)
 
 run gazebo- ros2 launch ros_gz_sim gz_sim.launch.py gz_args:=empty.sdf   #swap the sdf at the end for yours to launch it instead
 
 run gazebo with robot- ros2 launch my_robot_description gazebo.launch.xml
 
-ros2 run teleop_twist_keyboard teleop_twist_keyboard (control)
+ros2 run teleop_twist_keyboard teleop_twist_keyboard (controller)
 
+#example direct commands
 ros2 topic pub -r 1 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5}, angular: {z: 0.5}}" #(direct command to rotate wheels)
 
 ros2 topic pub -1 /shoulder/cmd_pos std_msgs/msg/Float64 "{data: 1.0472}" #(direct shoulder command)
@@ -139,49 +144,59 @@ ros2 topic pub -1 /arm_base/cmd_pos std_msgs/msg/Float64 "{data: 0.3}" #(direct 
 
 # bridge guide: https://github.com/gazebosim/ros_gz/blob/ros2/ros_gz_bridge/README.md ; contains message types that convert to ROS2 message types for integration
 
-Actions:
--inspect: ros2 action list 
-                    ~ info {action name} #shows server/client nodes invoking it
--direct command: ros2 action send_goal {action_name} {action_type} "{goal_param1: x,{goal_param2: y}" --feedback
+------------- Ros2 Advanced --------------
+Complex ros2 functionalities 
+
+- Actions:
+ros2 action list 
+          ~ info {action name} #shows server/client nodes invoking it
+ros2 action send_goal {action_name} {action_type} "{goal_param1: x,{goal_param2: y}" --feedback #direct command
 
 EXAMPLE: ros2 action send_goal /count_until my_robot_interfaces/action/CountUntil "{target_number: 10, period: 1.0}" --feedback
 
-lifecycle nodes:
+- lifecycle nodes:
 
--inspect: ros2 lifecycle get {node_name}  #returns state
-			 nodes            #returns running nodes names
-			 list {node_name} #returns all possible states to transition and their IDs
-			 set {node_name} {state_name} #starts a new transition on the lifecycle node
--{node_name}/transition_event #is the topic in which transition commands are recieved. type: lifecycle_msgs/msg/TransitionEvent
+ros2 lifecycle get {node_name}  #returns lifecycle state
+			   nodes            #returns running nodes names
+			   list {node_name} #returns all possible states to transition and their IDs
+			   set {node_name} {state_name} #starts a new transition on the lifecycle node
 
--service call: ros2 service call {node_name}/change_state lifecycle_msgs/srv/ChangeState "{transition: {id: x, label: 'label'}}" 
-#message type stores transition id and label list
-	       ros2 service call {node_name}/get_state lifecycle_msgs/srv/GetState "{}" #current state id
+{node_name}/transition_event #reports on attempts to change states. type: lifecycle_msgs/msg/TransitionEvent
+{node_name}/change_state #recieves requests to change states. type: lifecycle_msgs/srv/ChangeState
+{node_name}/get_state #stores current state id
+
+example use:
+ros2 service call {node_name}/change_state lifecycle_msgs/srv/ChangeState "{transition: {id: x, label: 'label'}}" #direct command to start a state change 
+ros2 service call {node_name}/get_state lifecycle_msgs/srv/GetState "{}" #reports current state id
 
 Executors:
 -
+
 Components:
 -
 
+-------------- Navigation2 ---------------
+Navigate a space with a map!
+
 Nav2:
-turtle3- ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py #robot with vision capability and integration
-cartographer- ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=True #draws map
-save a map- ros2 run nav2_map_server map_saver_cli -f {path to save to} #~/maps/imagename
-control: ros2 run turtlebot3_teleop teleop_keyboard
-nav2: ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=maps/arena.yaml
+1. turtle3: ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py #robot with vision capability and integration
+2. cartographer: ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=True #draws map based on robot sensors
+2.1 save a map: ros2 run nav2_map_server map_saver_cli -f {path to save to} #~/maps/imagename
+3. start a controller: ros2 run turtlebot3_teleop teleop_keyboard
+4. start nav2: ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=maps/arena.yaml #starts navigation using the generated map
 
 rqt --> plugins(configuration) ---> local/global costmap / controller_server #change values and weight of costmaps
 
-starting a custom nav2 for mapping:
+starting a custom nav2 for mapping: this way it maps and navigate at the same time
 1.launch nav2 adapted ros robot 
 2.start nav2- ros2 launch nav2_bringup navigation_launch.py  use_sim_time:=True #map:=maps/...
 3.start slam- ros2 launch slam_toolbox online_async_launch.py use_sim_time:=True #only to map out
 4.start rviz- rviz (add tf,Map,LaserScan,RobotModel)
 5.start teleop- any controller node will do.
 
-for navigating:
-change start nav2: ros2 launch nav2_bringup bringup_launch.py use_sim_time:=True map:=maps/.
-dont start slam.
+- navigating only:
+use a different nav2 launch: ros2 launch nav2_bringup bringup_launch.py use_sim_time:=True map:=maps/.
+dont start slam, you already have a map.
 #the default params.yaml for that package lacks a map_topic: "/map" parameter.
 
 
@@ -191,8 +206,10 @@ relevant topics:
 relevant actions:
 /navigate_to_pose
 /follow_waypoints
+-------------- Ros2 Control ------------
+use Ros to control drivers!
 
-ros2_control:
+- ros2_control:
 from the https://github.com/ros-controls/ros2_controllers/tree/jazzy
 find controller types and learn functionalities
 
@@ -207,4 +224,4 @@ control: ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd
 
 	debugging:
 	ros2 control list_controllers
-		   ~ list_hardware_interfaces
+		       ~ list_hardware_interfaces
