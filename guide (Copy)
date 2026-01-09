@@ -1,0 +1,210 @@
+A guide to ROS2 functionalities on CLI
+
+terminator commands:
+ctrl + Shift + ?
+x=zoom in
+o=Split horizontal
+e=Split vertical
+w=Close
+
+start ros2:
+source /opt/ros/jazzy/setup.bash
+
+create pkg:
+python: ros2 pkg create my_py_pkg --build-type ament_python --dependencies rclpy
+cpp: ros2 pkg create my_cpp_pkg --build-type ament_cmake --dependencies rclcpp
+
+
+build x and y named packages
+from root workspace(same folder as src is contained)
+colcon build --packages-select x y
+colcon build (builds all packages that are sourced)
+
+
+Inspect nodes:
+ros2 node list #names active nodes
+ros2 node info #info on the active nodes
+ros2 interface show <interface name>
+
+general inspection:
+rqt
+rqt_graph
+
+Inspect topics:
+ros2 topic list #--include-hidden-topics to show.... hidden topics
+ros2 topic info <topic name>
+ros2 topic hz <topic name> #frequency
+ros2 topic bw <topic name> #bandwidth
+ros2 topic pub -r <rate/second> <topic name> <interface> "{vectorname: {variablename: <value>}, ...}"[vector data] / "{data:'...'}"[string] 
+
+Inspect services:
+ros2 service list
+ros2 service type <service node name>  [returns service interface] 
+ros2 service call <Service node name > <interface> "{<request>}" 
+#when renaming services and clients use the same structure as changing topic names to create or request from different service names
+
+Interfaces:
+#download new interface from common_interfaces repo on git:
+sudo apt install ros-jazzy-<interface>-<msgs/srv>
+apt search ros-jazzy-<> #find available packages
+#use info command on nodes or topics to find the interface they're using(for services use type)
+ros2 topic info <topicname>
+
+ros2 interface packages #show all installed interface packages
+ros2 interface package <package_name> #show all interface names from given package
+ros2 interface show <interface_name> #show interface msg structure
+
+
+parameters:
+
+ros2 param list
+ros2 param get <node name> <parameter name>
+
+#runs file using params specified by the yaml file.
+ros2 run <package name> <file name> --ros-args --params-file ~/yaml_params/<yaml file name>.yaml 
+
+#manually send a param value
+~            same as above                      ~ -p <param name>:=<value> (additional params can be adjusted by repeating -p structure)
+#or during runtime:
+ros2 param set <node_name> <param_name> <value> #requires callback implementation
+
+
+
+Bags:
+ros2 bag -h(help) -o(rename)
+         play resends recorded data to the topic 
+ 
+Args:
+
+-run 2 of the same node without naming conflicts
+ros2 run <package name> <exec name> --ros-args -r __node:=<new name>
+~                                            ~ -r <topic name>:=<new name>
+~                                            ~ -r __ns:=<tag> 
+
+
+Launch: 
+ros2 launch <package_name> <launch_file_name.xml>
+
+#also when naming something on code you dont want to be tagged, just start its name with /
+
+
+
+
+RVIZ AND GAZEBO:
+
+urdf:
+create- touch <name>.urdf
+
+ros2 launch <pkg_name> <launch file> model:=<robot_model_file_location>
+example- ros2 launch urdf_tutorial display.launch.py model:=/opt/ros/jazzy/share/urdf_tutorial/urdf/08-macroed.urdf.xacro
+project- ros2 launch urdf_tutorial display.launch.py model:=//home/HugoF/Documents/Projects/ROS2/my_robot.urdf
+
+
+
+tree - ros2 run tf2_tools view_frames (generates a pdf on the active directory) -o (rename the file generated)
+
+
+run rviz launch file:
+ros2 launch my_robot_description display.launch.xml
+~                              ~ display.launch.py
+
+#within rviz- set fixed frame(global options), add robot model(then within it select robot_description as description topic), add TF
+#then save config and apply config path to file.
+
+
+gazebo:
+
+#gazebo topics are separete from ros2 topics, these are for the simulated environment
+
+gz topic -l (list)
+~      ~ -i -t (info on topic)
+~      ~ -h (help)
+
+run gazebo- ros2 launch ros_gz_sim gz_sim.launch.py gz_args:=empty.sdf   #swap the sdf at the end for yours to launch it instead
+
+run gazebo with robot- ros2 launch my_robot_description gazebo.launch.xml
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard (control)
+
+ros2 topic pub -r 1 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5}, angular: {z: 0.5}}" #(direct command to rotate wheels)
+
+ros2 topic pub -1 /shoulder/cmd_pos std_msgs/msg/Float64 "{data: 1.0472}" #(direct shoulder command)
+
+ros2 topic pub -1 /forearm/cmd_pos std_msgs/msg/Float64 "{data: -2.0944}" #(direct forearm command)
+
+ros2 topic pub -1 /arm_base/cmd_pos std_msgs/msg/Float64 "{data: 0.3}" #(direct arm base command)
+
+
+# gazebo plugins guide: https://github.com/gazebosim/gz-sim/tree/gz-sim9/src/systems ; contains all default plugins, their names and structure
+
+# bridge guide: https://github.com/gazebosim/ros_gz/blob/ros2/ros_gz_bridge/README.md ; contains message types that convert to ROS2 message types for integration
+
+Actions:
+-inspect: ros2 action list 
+                    ~ info {action name} #shows server/client nodes invoking it
+-direct command: ros2 action send_goal {action_name} {action_type} "{goal_param1: x,{goal_param2: y}" --feedback
+
+EXAMPLE: ros2 action send_goal /count_until my_robot_interfaces/action/CountUntil "{target_number: 10, period: 1.0}" --feedback
+
+lifecycle nodes:
+
+-inspect: ros2 lifecycle get {node_name}  #returns state
+			 nodes            #returns running nodes names
+			 list {node_name} #returns all possible states to transition and their IDs
+			 set {node_name} {state_name} #starts a new transition on the lifecycle node
+-{node_name}/transition_event #is the topic in which transition commands are recieved. type: lifecycle_msgs/msg/TransitionEvent
+
+-service call: ros2 service call {node_name}/change_state lifecycle_msgs/srv/ChangeState "{transition: {id: x, label: 'label'}}" 
+#message type stores transition id and label list
+	       ros2 service call {node_name}/get_state lifecycle_msgs/srv/GetState "{}" #current state id
+
+Executors:
+-
+Components:
+-
+
+Nav2:
+turtle3- ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py #robot with vision capability and integration
+cartographer- ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=True #draws map
+save a map- ros2 run nav2_map_server map_saver_cli -f {path to save to} #~/maps/imagename
+control: ros2 run turtlebot3_teleop teleop_keyboard
+nav2: ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=maps/arena.yaml
+
+rqt --> plugins(configuration) ---> local/global costmap / controller_server #change values and weight of costmaps
+
+starting a custom nav2 for mapping:
+1.launch nav2 adapted ros robot 
+2.start nav2- ros2 launch nav2_bringup navigation_launch.py  use_sim_time:=True #map:=maps/...
+3.start slam- ros2 launch slam_toolbox online_async_launch.py use_sim_time:=True #only to map out
+4.start rviz- rviz (add tf,Map,LaserScan,RobotModel)
+5.start teleop- any controller node will do.
+
+for navigating:
+change start nav2: ros2 launch nav2_bringup bringup_launch.py use_sim_time:=True map:=maps/.
+dont start slam.
+#the default params.yaml for that package lacks a map_topic: "/map" parameter.
+
+
+relevant topics:
+/initialpose (gives position of robot relative to map frame)
+
+relevant actions:
+/navigate_to_pose
+/follow_waypoints
+
+ros2_control:
+from the https://github.com/ros-controls/ros2_controllers/tree/jazzy
+find controller types and learn functionalities
+
+include a ros2_control tag and create a config.yaml
+
+robot- ros2 run robot_state_publisher robot_state_publisher --ros-args -p robot_description:="$(xacro /home/HugoF/ros2_ws/src/my_robot_description/urdf/my_robot.urdf.xacro)"
+controller- ros2 run controller_manager ros2_control_node --ros-args --params-file /home/HugoF/ros2_ws/src/my_launch_app/config/my_robot_controllers.yaml
+load controllers: ros2 run controller_manager spawner {namespace} #namespace at controller yaml
+
+rviz2
+control: ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_drive_controller/cmd_vel -p stamped:=true 
+
+	debugging:
+	ros2 control list_controllers
+		   ~ list_hardware_interfaces
