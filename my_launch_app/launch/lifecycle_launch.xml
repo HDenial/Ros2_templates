@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="lifecycle_py" exec="number_publisher" name="my_number_publisher"/>
+  <node pkg="lifecycle_py" exec="transition_manager">
+    <param name="managed_node_name" value="my_number_publisher"/>
+  </node>
+</launch>

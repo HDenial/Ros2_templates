@@ -1,0 +1,14 @@
+# Expected format for a request
+int64 led_id
+bool alert
+---
+# Response
+bool success
+
+# Service to check battery status and control LED alerts
+# A service expects a request and provides a response.
+# Request:
+# - led_id: ID of the LED to control
+# - alert: whether to turn on (true) or off (false) the alert
+# Response:
+# - success: indicates if the operation was successful

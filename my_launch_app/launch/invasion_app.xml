@@ -1,0 +1,18 @@
+<launch>
+    <node pkg='my_py_pkg' exec='robot_publisher' name="robot_ian" >
+        <param name="robot_name" type="str" value="Ian" />
+    </node>
+    <node pkg='my_py_pkg' exec='robot_publisher' name="robot_mike" >
+        <param name="robot_name" type="str" value="Mike" />
+    </node>
+    <node pkg='my_py_pkg' exec='robot_publisher' name="robot_glados" >
+        <param name="robot_name" type="str" value="Glad0s" />
+    </node>
+    <node pkg='my_py_pkg' exec='robot_publisher' name="robot_agneel" >
+        <param name="robot_name" type="str" value="Agneel" />
+    </node>
+    <node pkg='my_py_pkg' exec='robot_publisher' name="robot_wayne" >
+        <param name="robot_name" type="str" value="Wayne" />
+    </node>
+    <node pkg='my_py_pkg' exec='robot_listener' name="reciever" />
+</launch>

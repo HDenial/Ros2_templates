@@ -1,0 +1,4 @@
+/number_publisher:  #use renamed file name from xml launch file
+  ros__parameters:
+    number: 5
+    timer_period: 0.5

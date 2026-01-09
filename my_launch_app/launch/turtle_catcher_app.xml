@@ -1,0 +1,13 @@
+<launch>
+    <node pkg="turtlesim" exec="turtlesim_node"/>
+    <node pkg="turtle_catcher_pkg" exec="tcontroller"> 
+        <param from='$(find-pkg-share my_launch_app)/config/turtle_catcher_config.yaml'/>
+    </node>  
+    <node pkg="turtle_catcher_pkg" exec="tspawner">
+        <param from='$(find-pkg-share my_launch_app)/config/turtle_catcher_config.yaml'/>
+    </node>
+</launch>
+        
+        
+       
+       

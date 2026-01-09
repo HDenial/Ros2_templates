@@ -1,0 +1,16 @@
+#example action definition for counting until a target number is reached
+
+# Goal 
+int64 target_number
+float64 period
+---
+# Result
+int64 reached_number
+---
+# Feedback
+int64 current_number
+
+# Actions in ROS2 consist of three parts: Goal, Result, and Feedback.
+# The Goal section defines the parameters needed to start the action.
+# The Result section defines what information is returned when the action completes.
+# The Feedback section defines the information sent back to the client while the action is in progress.

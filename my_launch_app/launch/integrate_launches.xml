@@ -1,0 +1,6 @@
+<launch>
+    <include file="$(find-pkg-share my_launch_app)/launch/number_app.xml" />
+    <include file="$(find-pkg-share my_launch_app)/launch/number_app.py" />
+</launch>
+
+<!-- example of launch file integration -->

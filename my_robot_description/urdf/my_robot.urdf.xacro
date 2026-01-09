@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<robot name="Dregg" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- materials -->
+
+    <xacro:include filename="$(find my_robot_description)/urdf/common_properties.xacro"/>
+
+    <!-- links and joints -->
+
+    <xacro:include filename="$(find my_robot_description)/urdf/mobile_base.xacro"/>
+    <!-- <xacro:include filename="$(find my_robot_description)/urdf/arm.xacro"/> -->
+    <!-- <xacro:include filename="$(find my_robot_description)/urdf/camera.xacro"/> -->
+
+    <!-- gz systems -->
+
+    <!-- <xacro:include filename="$(find my_robot_description)/urdf/gazebo.systems/integrate_gz.xacro"/> -->
+    <xacro:include filename="$(find my_robot_description)/urdf/mobile_base.ros2_control.xacro"/> <!-- ros2 control only -->
+
+</robot>
