@@ -1,3 +1,5 @@
+#reads from existing topics and makes data within them available at given ports
+
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
